@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/home/wlw/projects/world2cam/build",
+  "command": "/usr/bin/c++   -I/home/wlw/projects/world2cam/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/eigen3  -O2 -g -DNDEBUG   -std=gnu++2a -o CMakeFiles/world2cam.dir/src/main.cpp.o -c /home/wlw/projects/world2cam/src/main.cpp",
+  "file": "/home/wlw/projects/world2cam/src/main.cpp"
+},
+{
+  "directory": "/home/wlw/projects/world2cam/build",
+  "command": "/usr/bin/c++   -I/home/wlw/projects/world2cam/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/eigen3  -O2 -g -DNDEBUG   -std=gnu++2a -o CMakeFiles/world2cam.dir/src/PTXReader.cpp.o -c /home/wlw/projects/world2cam/src/PTXReader.cpp",
+  "file": "/home/wlw/projects/world2cam/src/PTXReader.cpp"
+},
+{
+  "directory": "/home/wlw/projects/world2cam/build",
+  "command": "/usr/bin/c++   -I/home/wlw/projects/world2cam/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/eigen3  -O2 -g -DNDEBUG   -std=gnu++2a -o CMakeFiles/world2cam.dir/src/CameraLoader.cpp.o -c /home/wlw/projects/world2cam/src/CameraLoader.cpp",
+  "file": "/home/wlw/projects/world2cam/src/CameraLoader.cpp"
+},
+{
+  "directory": "/home/wlw/projects/world2cam/build",
+  "command": "/usr/bin/c++   -I/home/wlw/projects/world2cam/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/eigen3  -O2 -g -DNDEBUG   -std=gnu++2a -o CMakeFiles/world2cam.dir/src/utils.cpp.o -c /home/wlw/projects/world2cam/src/utils.cpp",
+  "file": "/home/wlw/projects/world2cam/src/utils.cpp"
+}
+]

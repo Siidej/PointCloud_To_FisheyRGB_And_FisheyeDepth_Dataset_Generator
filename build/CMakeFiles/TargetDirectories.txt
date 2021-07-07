@@ -1,0 +1,3 @@
+/home/wlw/projects/world2cam/build/CMakeFiles/rebuild_cache.dir
+/home/wlw/projects/world2cam/build/CMakeFiles/edit_cache.dir
+/home/wlw/projects/world2cam/build/CMakeFiles/world2cam.dir

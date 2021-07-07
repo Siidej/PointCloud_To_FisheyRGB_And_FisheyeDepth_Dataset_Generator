@@ -1,0 +1,178 @@
+# include "CameraLoader.hpp"
+
+
+CameraLoader::CameraLoader(std::string inputFile)
+{
+    filestream.open(inputFile,std::ios::in);
+    std::string line;
+
+    safeGetline(filestream, line); //Line 1
+    safeGetline(filestream, line); //Line 2
+
+    // Polynomial coefficients for the DIRECT mapping function (ocam_model.ss in MATLAB). These are used by cam2world
+    safeGetline(filestream, line); //Line 3
+    std::vector<std::string> parsed = split(line, ' ');
+    for (std::size_t i = 0; i < std::stof(parsed[0]); ++i)
+    {
+        model.pol[i] = std::stof(parsed[i+1]);
+        //std::cout << model.pol[i] << std::endl;
+    }
+
+    safeGetline(filestream, line); //Line 4
+    safeGetline(filestream, line); //Line 5
+    safeGetline(filestream, line); //Line 6
+
+    // Polynomial coefficients for the inverse mapping function (ocam_model.invpol in MATLAB). These are used by world2cam
+    safeGetline(filestream, line); //Line 7
+    parsed = split(line, ' ');
+    for (int i = 0; i < std::stof(parsed[0]); ++i)
+    {
+        model.invPol.emplace_back(std::stof(parsed[i+1]));
+    }
+
+    safeGetline(filestream, line); //Line 8
+    safeGetline(filestream, line); //Line 9
+    safeGetline(filestream, line); //Line 10
+
+    // Center: "row" and "column", starting from 0 (C convention)
+    safeGetline(filestream, line); //Line 11
+    parsed = split(line, ' ');
+    model.xc = std::stof(parsed[0]);
+    model.yc = std::stof(parsed[1]);
+
+    safeGetline(filestream, line); //Line 12
+    safeGetline(filestream, line); //Line 13
+    safeGetline(filestream, line); //Line 14
+
+    // Affine parameters "c", "d", "e"
+    safeGetline(filestream, line); //Line 15
+    parsed = split(line, ' ');
+    model.c = std::stof(parsed[0]);
+    model.d = std::stof(parsed[1]);
+    model.e = std::stof(parsed[2]);
+
+    safeGetline(filestream, line); //Line 16
+    safeGetline(filestream, line); //Line 17
+    safeGetline(filestream, line); //Line 18
+
+    // Image size: "height" and "width"
+    safeGetline(filestream, line); //Line 19
+    parsed = split(line, ' ');
+    model.height = std::stof(parsed[0]);
+    model.width = std::stof(parsed[1]);
+
+    filestream.close();
+}
+
+void CameraLoader::word2cam(Eigen::Matrix<float, Eigen::Dynamic, 3> xyzMat, Eigen::Matrix<unsigned char, Eigen::Dynamic, 3> rgbMat)//:
+//xyzMat(xyzMat), rgbMat(rgbMat)
+{
+    uint nPoints = xyzMat.rows();
+    Eigen::Array<float,Eigen::Dynamic,1> theta(nPoints,1);
+    Eigen::Array<float,Eigen::Dynamic,1> norm(nPoints,1);
+    Eigen::Array<float,Eigen::Dynamic,1> rho(nPoints,1);
+    Eigen::Array<float,Eigen::Dynamic,1> x(nPoints,1);
+    Eigen::Array<float,Eigen::Dynamic,1> y(nPoints,1);
+    Eigen::Array<float,Eigen::Dynamic,2> points2d(nPoints,2);    // u, v
+
+    float fov = 150;
+
+// 150 - > 853 pix 
+
+    cv::Mat imageMat = cv::Mat::ones(1708, 4096, CV_8UC3);
+    size_t tempidx = 0;
+    for(size_t i = 0; i < imageMat.cols; i++)
+    {
+        for(size_t j = imageMat.rows-1; j > 0; j--)
+        {
+            imageMat.at<cv::Vec3b>(j,i)[0] = rgbMat(tempidx,2);
+            imageMat.at<cv::Vec3b>(j,i)[1] = rgbMat(tempidx,1);
+            imageMat.at<cv::Vec3b>(j,i)[2] = rgbMat(tempidx,0);
+
+            if(         sqrt((2048-i)*(2048-i)+(854-j)*(854-j)) > 853     )
+            {
+
+                //imageMat.at<cv::Vec3b>(j,i)[0] = 0;
+                //imageMat.at<cv::Vec3b>(j,i)[1] = 0;
+                //imageMat.at<cv::Vec3b>(j,i)[2] = 0;
+            }
+            tempidx++;
+        }
+    }
+
+
+    norm = (xyzMat.col(2)*xyzMat.col(2) + xyzMat.col(1)*xyzMat.col(1));
+    norm = norm.sqrt();
+    //std::cout << norm.row(0) << std::endl;
+
+    std::vector<Eigen::Index> idxs_0;
+    for(Eigen::Index i=0; i<norm.size(); ++i)
+    {
+        if(norm(i) == 0)
+            norm(i) == FLT_EPSILON;
+    }
+
+    theta = Eigen::atan((xyzMat.col(0).array().abs())/norm);
+
+    //for(Eigen::Index i=0; i<nPoints; ++i)
+    //{
+        //float x = theta(i);
+        ////rho(i) = model.pol[0]*(x,4) + model.pol[1]*(x,3) + model.pol[2]*(x,2) + model.pol[3]*(x,4) + model.pol[4];  
+        //rho(i) = model.pol[4]*x*x*x*x + model.pol[3]*x*x*x + model.pol[2]*x*x + model.pol[1]*x + model.pol[0];  
+    //}
+    for(Eigen::Index i=0; i<nPoints; ++i)
+    {
+        float x = theta(i);
+        float temp = 0.0; 
+        for(std::size_t i = 0; i < model.invPol.size(); ++i)
+        {
+            temp += model.invPol[i]*(x, i);
+            //std::cout << model.invPol[i] << "\n";
+            //std::cout << i << "\n";
+        }
+        rho(i) =  temp;
+        //std::cout << rho(i) << "\n";
+    }
+    
+    x = (xyzMat.col(2).array())/norm*rho;
+    y = (xyzMat.col(1).array())/norm*rho;
+
+    points2d.col(0) = x*model.c + y*model.d + model.xc;
+    points2d.col(1) = x*model.e + y + model.xc;
+
+
+    //cv::Mat imageMat = cv::Mat::ones(model.height, model.width, CV_8UC3);
+
+    cv::Mat fishImageMat = cv::Mat::ones(1000, 1000, CV_8UC3);
+    for(Eigen::Index i=0; i<nPoints; ++i)
+    {
+        int row = (int)points2d(i,0);
+        int col = (int)points2d(i,1);
+
+       //std::cout << row << std::endl;
+       //std::cout << col << std::endl;
+       //std::cout << "xxxxxxxxxxxxxxxxxxxxxxxxx" << std::endl;
+       if(row>0 && row <1000 && col>0 && col<1000){
+        fishImageMat.at<cv::Vec3b>(row,col)[0] = rgbMat(i,2);
+        fishImageMat.at<cv::Vec3b>(row,col)[1] = rgbMat(i,1);
+        fishImageMat.at<cv::Vec3b>(row,col)[2] = rgbMat(i,0);
+       }
+            //pixelPtr[row*imageMat.cols*cn + col*cn + 0] = rgbMat(i,2); // B
+            //pixelPtr[row*imageMat.cols*cn + col*cn + 1] = rgbMat(i,1); // B // G
+            //pixelPtr[row*imageMat.cols*cn + col*cn + 2] = rgbMat(i,0); // B // R
+
+    }
+
+    cv::imshow("Display Fish", fishImageMat);
+    cv::imshow("Display window", imageMat);
+    int k = cv::waitKey(0); // Wait for a keystroke in the window
+    if(k == 'q')
+    {
+        cv::destroyAllWindows();
+    }
+
+}
+
+CameraLoader::~CameraLoader() 
+{
+}
