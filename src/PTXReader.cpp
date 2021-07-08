@@ -9,9 +9,9 @@ xyzrgbMat(xyzrgbMat), filename(inputFile)
     filestream.open(filename,std::ios::in);
     std::string line;
     safeGetline(filestream, line);
-    int nCols = stoi(line);
+    nCols = stoi(line);
     safeGetline(filestream, line);
-    int nRows = stoi(line);
+    nRows = stoi(line);
     unsigned int nElems = nCols*nRows;
 
     xyzrgbMat.resize(nElems, 6);

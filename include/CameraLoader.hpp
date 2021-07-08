@@ -19,10 +19,12 @@ struct CamModel
 };
 struct PointF
 {
-    float u, v, r, g, b, x, y, z;
+    float u, v;
+    size_t idx;
     bool operator < (const PointF& a)
     {
-        return ((this->x < a.x) || (this->x == a.x && this->y < a.y) || (this->x == a.x && this->y == a.y && this->z < a.z));
+        //return ((this->x < a.x) || (this->x == a.x && this->y < a.y) || (this->x == a.x && this->y == a.y && this->z < a.z));
+        return ((this->idx < a.idx));
     }
 };
 struct Point3F
@@ -43,5 +45,5 @@ public:
     float width, height;
     CameraLoader(std::string inputFile);
     ~CameraLoader();
-    void word2cam(Eigen::Matrix<float, Eigen::Dynamic, 6> xyzrgbMat, Eigen::Affine3d world_T_rig,std::vector<PointF>& point2_, std::string extensionRemoved);
+    void word2cam(Eigen::Matrix<float, Eigen::Dynamic, 6> xyzrgbMat, Eigen::Affine3d world_T_rig, std::vector<PointF>& point2_);
 };

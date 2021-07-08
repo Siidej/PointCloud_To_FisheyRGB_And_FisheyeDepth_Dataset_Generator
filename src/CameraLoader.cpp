@@ -90,8 +90,7 @@ CameraLoader::CameraLoader(std::string inputFile)
 
 void CameraLoader::word2cam(Eigen::Matrix<float, Eigen::Dynamic, 6> xyzrgbMat, 
                                             Eigen::Affine3d world_T_rig,
-                                            std::vector<PointF>& point2_, 
-                                            std::string extensionRemoved)
+                                            std::vector<PointF>& point2_)
 {   
     size_t nPoints = xyzrgbMat.rows();
     float x, y, z, norm, angle;
@@ -105,7 +104,7 @@ void CameraLoader::word2cam(Eigen::Matrix<float, Eigen::Dynamic, 6> xyzrgbMat,
     {
         //each point//
         Eigen::Vector3d posInWorld(xyzrgbMat(idx, 0), xyzrgbMat(idx,1), xyzrgbMat(idx,2));
-        Eigen::Vector3d posInCam = cam_T_rig*(world_T_rig.inverse()*posInWorld);
+        Eigen::Vector3d posInCam = cam_T_rig*world_T_rig.inverse()*posInWorld;
         x = posInCam(0);
         y = posInCam(1);
         z = posInCam(2);
@@ -129,44 +128,11 @@ void CameraLoader::word2cam(Eigen::Matrix<float, Eigen::Dynamic, 6> xyzrgbMat,
                 // Add center
                 point2.v = v*model.c + u*model.d + model.xc;
                 point2.u = v*model.e + u + model.yc;
-                point2.x = xyzrgbMat(idx, 0);
-                point2.y = xyzrgbMat(idx, 1);
-                point2.z = xyzrgbMat(idx, 2);
-                point2.r = xyzrgbMat(idx, 3);
-                point2.g = xyzrgbMat(idx, 4);
-                point2.b = xyzrgbMat(idx, 5);
-                //point2_.insert({point2, pColor});
+                point2.idx = idx;
                 point2_.push_back(point2);
             }
         }
     }
-    /*
-    for(std::size_t i = 0; i < point2_.size(); ++i) 
-    {
-        int col = (int)(point2_[i].u);
-        int row = (int)(point2_[i].v);
-
-        imageMat.at<cv::Vec3b>(row,col)[0] = point2_[i].b;
-        imageMat.at<cv::Vec3b>(row,col)[1] = point2_[i].g;
-        imageMat.at<cv::Vec3b>(row,col)[2] = point2_[i].r;
-
-        //gtMat.at<float>(row,col) = point2_[i].dis;
-    }
-    //cv::Mat normGtMat;
-    //gtMat.convertTo(normGtMat, CV_32F, 0.1, 0);
-    //cv::bilateralFilter(imageMat, imageMat, );
-
-    //cv::imshow( "Display window", imageMat );
-    cv::imwrite(savePath, imageMat);
-    
-
-    //cv::imshow("GT window", normGtMat);
-    //int k = cv::waitKey(0); // Wait for a keystroke in the window
-    //if(k == 'q')
-    //{
-        //cv::destroyAllWindows();
-    //}
-    */
 }
 
 CameraLoader::~CameraLoader() 

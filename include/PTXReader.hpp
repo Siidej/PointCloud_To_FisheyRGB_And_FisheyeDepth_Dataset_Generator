@@ -27,5 +27,6 @@ private:
     
 public:
     PTXReader(Eigen::Matrix<float, Eigen::Dynamic, 6> &xyzrgbMat, std::string inputFile);
+    int nCols, nRows;
     ~PTXReader();
 };
