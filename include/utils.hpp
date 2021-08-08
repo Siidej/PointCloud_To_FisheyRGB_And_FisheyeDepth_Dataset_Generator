@@ -6,6 +6,6 @@
 # include <sstream>
 # include <vector>
 
-extern const std::istream& safeGetline(std::istream& is, std::string& t);
-extern const std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
-extern const std::vector<std::string> split(const std::string &s, char delim);
+const std::istream& safeGetline(std::istream& is, std::string& t);
+const std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
+const std::vector<std::string> split(const std::string &s, char delim);
